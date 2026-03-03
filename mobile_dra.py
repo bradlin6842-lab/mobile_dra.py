@@ -83,7 +83,7 @@ hist_data = yf.Ticker(ticker).history(period=period_map[vol_mode])
 if len(hist_data) > 10:
     log_returns = np.log(hist_data['Close'] / hist_data['Close'].shift(1))
     sigma = log_returns.std() * np.sqrt(252)
-    sigma = max(min(sigma, 0.9), 0.1) # 限制範圍防異常
+    sigma = max(min(sigma, 0.99), 0.1) # 限制範圍防異常
 else:
     sigma = 0.35
 
@@ -110,7 +110,7 @@ fig.add_hline(y=strike_pct, line_dash="dash", line_color="red",
 fig.update_layout(
     height=350, template="plotly_dark",
     xaxis_title="Forward Days", yaxis_title="Price Ratio",
-    yaxis=dict(range=[0, 1.1], tickformat=".0%"), # 鎖定 Y 軸範圍在 0% 到 110%
+    yaxis=dict(range=[0.2, 1.1], tickformat=".0%"), # 鎖定 Y 軸範圍在 20% 到 110%
     margin=dict(l=5, r=5, t=10, b=5)
 )
 st.plotly_chart(fig, use_container_width=True)
