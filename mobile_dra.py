@@ -24,7 +24,7 @@ st.title("💰 DRA Daily Sentinel")
 st.caption("Daily Range Accrual (Floor Only) - Mobile Pro")
 
 # --- 1. Asset Selection ---
-input_tickers = st.text_input("Enter Tickers (e.g., NVDA, TSM, 6857.T)", "NVDA, TSM, 6857.T")
+input_tickers = st.text_input("Enter Tickers (e.g., NVDA, TSM, 6857.T, 9988.HK)", "NVDA, TSM, 6857.T, 9988.HK")
 tickers = [t.strip().upper() for t in input_tickers.split(",") if t.strip()]
 if not tickers: tickers = ["NVDA"]
 ticker = st.selectbox("🎯 Target Asset", tickers)
@@ -129,35 +129,3 @@ st.markdown(f"""
         <p style="color: #888888; font-size: 11px;">Simulation: 100 paths | Student's t-dist</p>
     </div>
     """, unsafe_allow_html=True)
-
-# --- 8. Export PDF ---
-if st.button("🚀 Export DRA Audit Report"):
-    st.balloons()
-    audit_no = random.randint(100000, 999999)
-    class PDF(FPDF):
-        def header(self):
-            self.set_fill_color(30, 30, 30); self.rect(0, 0, 210, 40, 'F')
-            self.set_text_color(255, 255, 255); self.set_font('Arial', 'B', 16)
-            self.cell(0, 20, 'DRA PERFORMANCE AUDIT', 0, 1, 'C')
-            self.ln(20)
-    pdf = PDF()
-    pdf.add_page()
-    pdf.set_font('Arial', 'B', 12)
-    pdf.cell(0, 10, f' [I] ASSET: {asset_info["name"]} ({ticker})', 0, 1, 'L', fill=True)
-    pdf.set_font('Arial', '', 11)
-    pdf.cell(0, 8, f'  - Valuation (P/E): {asset_info["pe"]}', ln=True)
-    pdf.cell(0, 8, f'  - Annualized Volatility: {sigma:.1%}', ln=True)
-    pdf.cell(0, 8, f'  - Current Price: ${current_p:,.2f}', ln=True)
-    pdf.ln(5)
-    pdf.set_font('Arial', 'B', 12)
-    pdf.cell(0, 10, ' [II] DRA SETUP & EXPECTATION', 0, 1, 'L', fill=True)
-    pdf.set_font('Arial', '', 11)
-    pdf.cell(0, 8, f'  - Accrual Floor (Strike): {strike_pct*100:.1f}% (${current_p*strike_pct:,.2f})', ln=True)
-    pdf.cell(0, 8, f'  - Potential Max Coupon: {coupon_rate:.2f}%', ln=True)
-    pdf.cell(0, 8, f'  - Est. Accrual Ratio: {avg_accrual_ratio*100:.1f}% of days', ln=True)
-    pdf.set_text_color(0, 150, 0)
-    pdf.cell(0, 10, f'  >>> EXPECTED ANNUAL YIELD: {expected_yield:.2f}%', ln=True)
-    
-    pdf_out = pdf.output(dest='S').encode('latin-1')
-    b64 = base64.b64encode(pdf_out).decode()
-    st.markdown(f'<a href="data:application/pdf;base64,{b64}" download="DRA_{ticker}_{audit_no}.pdf" style="text-decoration:none;"><div style="background-color:#FFD700;color:black;padding:15px;border-radius:10px;text-align:center;font-weight:bold;">⬇️ Download DRA Report</div></a>', unsafe_allow_html=True)
