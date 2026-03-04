@@ -30,32 +30,37 @@ if not tickers: tickers = ["NVDA"]
 ticker = st.selectbox("🎯 Target Asset", tickers)
 
 # --- 2. Robust Data Fetching ---
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=60)
 def get_asset_info_safe(symbol):
     try:
         asset = yf.Ticker(symbol)
-        fast = asset.fast_info
-        try:
-            full_info = asset.info
-            name = full_info.get('longName', symbol)
-            pe = full_info.get('trailingPE', 'N/A')
-        except:
-            name = symbol
-            pe = 'N/A'
+        
+        # 1. 優先抓取最近 1 分鐘 K 線 (解決日、港、美股現價出錯問題)
+        hist = asset.history(period="1d", interval="1m")
+        if not hist.empty:
+            price = hist['Close'].iloc[-1]
+        else:
+            # 2. 備案：fast_info
+            price = asset.fast_info.get('last_price')
+            
+        # 3. 最終保險：regularMarketPrice
+        if price is None or price <= 0 or price == 100.0:
+            price = asset.info.get('regularMarketPrice', 100.0)
+
+        # 抓取基本資訊
+        full_info = asset.info
         return {
-            "name": name, "pe": pe,
-            "low52": fast.get('yearLow', 0),
-            "high52": fast.get('yearHigh', 0),
-            "curr": fast.get('last_price') or 100.0
+            "name": full_info.get('longName', symbol),
+            "pe": full_info.get('trailingPE', 'N/A'),
+            "low52": asset.fast_info.get('yearLow', 0),
+            "high52": asset.fast_info.get('yearHigh', 0),
+            "curr": price
         }
     except:
         return {"name": symbol, "pe": "N/A", "low52": 0, "high52": 0, "curr": 100.0}
 
-if ticker:
-    asset_info = get_asset_info_safe(ticker)
-else:
-    asset_info = {"name": "Select Asset", "pe": "N/A", "low52": 0, "high52": 0, "curr": 100.0}
-
+# 抓取資料後的調用邏輯 (對應你原本的 54-59 行)
+asset_info = get_asset_info_safe(ticker) if ticker else {"name": "Select Asset", "pe": "N/A", "low52": 0, "high52": 0, "curr": 100.0}
 current_p = asset_info['curr']
 
 # Display Asset Info Card
