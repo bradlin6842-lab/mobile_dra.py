@@ -88,7 +88,7 @@ hist_data = yf.Ticker(ticker).history(period=period_map[vol_mode])
 if len(hist_data) > 10:
     log_returns = np.log(hist_data['Close'] / hist_data['Close'].shift(1))
     sigma = log_returns.std() * np.sqrt(252)
-    sigma = max(min(sigma, 0.9), 0.1) # 限制範圍防異常
+    sigma = max(min(sigma, 1.2), 0.1) # 限制範圍防異常
 else:
     sigma = 0.35
 
